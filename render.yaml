@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: 8cubeBD
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn api:app --host 0.0.0.0 --port 8000
+    plan: starter  # $7–$15/mo tier for persistent storage
+    disk:
+      name: data
+      mountPath: /app
+      sizeGB: 5
