@@ -8,4 +8,4 @@ services:
     disk:
       name: data
       mountPath: /app
-      sizeGB: 5
+      sizeGB: 10
