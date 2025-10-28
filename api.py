@@ -5,6 +5,7 @@ import sqlite3
 import os
 import io
 from enum import Enum
+from typing import Optional
 
 # ---------------------------------------------------------------------
 # Path to your SQLite database
@@ -17,7 +18,7 @@ def get_db_connection():
     return sqlite3.connect(DB_FILE)
 
 # ---------------------------------------------------------------------
-# Dynamically build Enums for dropdowns
+# Helper: Get unique values from a column
 def get_unique_values(column_name: str):
     """Get unique values from table_1 for the given column."""
     try:
@@ -30,17 +31,25 @@ def get_unique_values(column_name: str):
         print(f"Warning: Could not load unique values for {column_name}: {e}")
         return []
 
-# Fetch categories from DB
+# Helper: Get column names from a table
+def get_columns_from_table(table_name: str):
+    """Fetch column names from a given table in the DB."""
+    try:
+        conn = get_db_connection()
+        cursor = conn.execute(f"PRAGMA table_info('{table_name}')")
+        columns = [row[1] for row in cursor.fetchall()]
+        conn.close()
+        # Exclude non-block columns
+        return [c for c in columns if c not in ("gene_name", "ensembl_id")]
+    except Exception as e:
+        print(f"Warning: Could not fetch columns for {table_name}: {e}")
+        return []
+
+# ---------------------------------------------------------------------
+# Dynamically build Enums for dropdowns
 analysis_levels = get_unique_values("Analysis_level")
 analysis_types = get_unique_values("Analysis_type")
 
-# If DB not reachable at startup, provide fallback values
-if not analysis_levels:
-    analysis_levels = ["gene", "sample", "cell"]
-if not analysis_types:
-    analysis_types = ["bulk", "singlecell", "tissue"]
-
-# Build dynamic Enums
 AnalysisLevel = Enum("AnalysisLevel", {v: v for v in analysis_levels})
 AnalysisType = Enum("AnalysisType", {v: v for v in analysis_types})
 
@@ -49,7 +58,7 @@ AnalysisType = Enum("AnalysisType", {v: v for v in analysis_types})
 app = FastAPI(
     title="8cubeDB API",
     description="API for querying gene specificity from the Rebboah et al. (2025) 8cube founder dataset.",
-    version="1.2.0"
+    version="1.1.0"
 )
 
 # ---------------------------------------------------------------------
@@ -63,6 +72,32 @@ def df_to_csv_stream(df: pd.DataFrame, filename: str = "data.csv"):
         media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
+
+# ---------------------------------------------------------------------
+# NEW ENDPOINT: Configuration Dictionary
+@app.get("/config")
+def get_analysis_config():
+    """
+    Returns a nested dictionary of all available analysis levels,
+    analysis types, and block labels for each combination.
+    Useful for populating dropdowns in a UI.
+    """
+    config = {}
+    for level in analysis_levels:
+        config[level] = {}
+        for a_type in analysis_types:
+            table_name = f"{level}_{a_type}"
+            block_labels = get_columns_from_table(table_name)
+            if block_labels:
+                config[level][a_type] = block_labels
+
+    if not config:
+        raise HTTPException(status_code=404, detail="No valid analysis configuration found in database.")
+
+    return {
+        "description": "Dictionary of all available analysis levels, types, and block labels.",
+        "analysis_config": config
+    }
 
 # ---------------------------------------------------------------------
 # Endpoint 1: Specificity
@@ -80,26 +115,56 @@ def extract_all_specificity_per_gene(
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
-    return df_to_csv_stream(df, "specificity.csv")
+
+    # Construct dynamic file name
+    if len(gene_list) <= 3:
+        safe_names = [g.replace(" ", "_") for g in gene_list]  # sanitize names
+        filename = "_".join(safe_names) + "_specificity.csv"
+    else:
+        filename = f"{len(gene_list)}_specificity.csv"
+
+    return df_to_csv_stream(df, filename)
 
 # ---------------------------------------------------------------------
 # Endpoint 2: psi_block
 @app.get("/psi_block")
 def extract_psi_block(
     analysis_level: AnalysisLevel,
-    analysis_type: AnalysisType
+    analysis_type: AnalysisType,
+    gene_list: Optional[list[str]] = Query(None, description="List of gene names or Ensembl IDs to filter (optional)")
 ):
-    """Reads a psi_block table from the DB based on analysis type and level."""
+    """Reads a psi_block table from the DB based on analysis type and level.
+       Optionally filters by gene(s) and generates a dynamic CSV filename."""
+    
     conn = get_db_connection()
     table_name = f"{analysis_level.value}_{analysis_type.value}"
-    query = f"SELECT * FROM '{table_name}'"
+    base_query = f"SELECT * FROM '{table_name}'"
+
+    # Build query based on whether genes were passed
+    if gene_list:
+        gene_str = ', '.join(f"'{g}'" for g in gene_list)
+        query = f"{base_query} WHERE gene_name IN ({gene_str}) OR ensembl_id IN ({gene_str})"
+    else:
+        query = base_query
+
     try:
         df = pd.read_sql_query(query, conn)
     except pd.io.sql.DatabaseError as e:
         raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found. {e}")
     finally:
         conn.close()
-    return df_to_csv_stream(df, f"{table_name}.csv")
+
+    # --- Dynamic filename logic ---
+    if gene_list:
+        if len(gene_list) <= 3:
+            safe_names = [g.replace(" ", "_") for g in gene_list]
+            filename = "_".join(safe_names) + f"_{table_name}_psi_block.csv"
+        else:
+            filename = f"{len(gene_list)}_{table_name}_psi_block.csv"
+    else:
+        filename = f"all_{table_name}_psi_block.csv"
+
+    return df_to_csv_stream(df, filename)
 
 # ---------------------------------------------------------------------
 # Endpoint 3: Highly specific genes
@@ -192,6 +257,7 @@ def home():
         "analysis_levels": analysis_levels,
         "analysis_types": analysis_types,
         "endpoints": {
+            "/config": "View all analysis levels, types, and available block labels",
             "/specificity": "Download gene specificity for a list of genes as CSV",
             "/psi_block": "Download psi block table as CSV",
             "/highly_specific": "Download highly specific genes as CSV",
