@@ -74,22 +74,52 @@ def df_to_csv_stream(df: pd.DataFrame, filename: str = "data.csv"):
     )
 
 # ---------------------------------------------------------------------
-# NEW ENDPOINT: Configuration Dictionary
 @app.get("/config")
-def get_analysis_config():
+def get_analysis_config(
+    analysis_level: Optional[AnalysisLevel] = Query(None, description="Select an analysis level"),
+    analysis_type: Optional[AnalysisType] = Query(None, description="Select an analysis type")
+):
     """
-    Returns a nested dictionary of all available analysis levels,
-    analysis types, and block labels for each combination.
-    Useful for populating dropdowns in a UI.
+    Returns block label options for a given analysis_level and analysis_type,
+    or the full nested configuration if no parameters are provided.
+
+    Removes redundant columns such as 'gene_name', 'ensembl_id',
+    'Analysis_level', and 'Analysis_type' from the results.
     """
+    excluded_cols = {"gene_name", "ensembl_id", "Analysis_level", "Analysis_type"}
+
+    # -----------------------------------------------------------------
+    # Case 1: User provides both level and type → return only block labels
+    # -----------------------------------------------------------------
+    if analysis_level and analysis_type:
+        table_name = f"{analysis_level.value}_{analysis_type.value}"
+        block_labels = get_columns_from_table(table_name)
+        filtered_labels = [c for c in block_labels if c not in excluded_cols]
+
+        if not filtered_labels:
+            raise HTTPException(
+                status_code=404,
+                detail=f"No valid block labels found for {table_name}"
+            )
+
+        return {
+            "analysis_level": analysis_level.value,
+            "analysis_type": analysis_type.value,
+            "block_labels": filtered_labels
+        }
+
+    # -----------------------------------------------------------------
+    # Case 2: No filters → return full nested dictionary for all combos
+    # -----------------------------------------------------------------
     config = {}
     for level in analysis_levels:
         config[level] = {}
         for a_type in analysis_types:
             table_name = f"{level}_{a_type}"
             block_labels = get_columns_from_table(table_name)
-            if block_labels:
-                config[level][a_type] = block_labels
+            filtered_labels = [c for c in block_labels if c not in excluded_cols]
+            if filtered_labels:
+                config[level][a_type] = filtered_labels
 
     if not config:
         raise HTTPException(status_code=404, detail="No valid analysis configuration found in database.")
