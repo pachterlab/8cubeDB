@@ -6,7 +6,7 @@ import os
 import io
 
 # Path to your SQLite database
-DB_FILE = "/app/8cube.db" 
+DB_FILE = "/data/8cube.db" 
 
 # Helper function to establish connection
 def get_db_connection():
