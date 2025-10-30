@@ -347,7 +347,7 @@ def home():
             "/psi_block": "Download psi block table as CSV",
             "/highly_specific": "Download highly specific genes as CSV",
             "/non_specific": "Download housekeeping genes as CSV",
-            "/marker": "Download marker genes as CSV"
+            "/marker": "Download marker genes as CSV",
             "/gene_expression": "Download gene expression mean and variance tables"
 
         }
