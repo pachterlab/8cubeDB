@@ -18,6 +18,16 @@ def get_db_connection():
     return sqlite3.connect(DB_FILE)
 
 # ---------------------------------------------------------------------
+# Path to the mean/variance SQLite database
+MEAN_VAR_DB_FILE = "/data/mean_var_DB.db"
+
+def get_meanvar_db_connection():
+    if not os.path.exists(MEAN_VAR_DB_FILE):
+        raise FileNotFoundError(f"Database file {MEAN_VAR_DB_FILE} not found in container.")
+    return sqlite3.connect(MEAN_VAR_DB_FILE)
+
+
+# ---------------------------------------------------------------------
 # Helper: Get unique values from a column
 def get_unique_values(column_name: str):
     """Get unique values from table_1 for the given column."""
@@ -58,7 +68,7 @@ AnalysisType = Enum("AnalysisType", {v: v for v in analysis_types})
 app = FastAPI(
     title="8cubeDB API",
     description="API for querying gene specificity from the Rebboah et al. (2025) 8cube founder dataset.",
-    version="1.1.0"
+    version="1.0.0"
 )
 
 # ---------------------------------------------------------------------
@@ -82,9 +92,6 @@ def get_analysis_config(
     """
     Returns block label options for a given analysis_level and analysis_type,
     or the full nested configuration if no parameters are provided.
-
-    Removes redundant columns such as 'gene_name', 'ensembl_id',
-    'Analysis_level', and 'Analysis_type' from the results.
     """
     excluded_cols = {"gene_name", "ensembl_id", "Analysis_level", "Analysis_type"}
 
@@ -135,7 +142,8 @@ def get_analysis_config(
 def extract_all_specificity_per_gene(
     gene_list: list[str] = Query(..., description="List of gene names or Ensembl IDs")
 ):
-    """Extract rows where 'gene_name' OR 'ensembl_id' is in gene_list."""
+    """Extract rows where 'gene_name' OR 'ensembl_id' is in gene_list.
+        Describes specificity across entire 8cube dataset. """
     conn = get_db_connection()
     gene_str = ', '.join(f"'{g}'" for g in gene_list)
     query = f"""
@@ -278,6 +286,53 @@ def extract_marker(
     return df_to_csv_stream(df, "marker_genes.csv")
 
 # ---------------------------------------------------------------------
+@app.get("/gene_expression")
+def get_mean_var_table(
+    table_name: str,
+    gene_list: Optional[list[str]] = Query(None, description="List of gene names or Ensembl IDs to filter (optional)")
+):
+    """
+    Fetch mean/variance gene expression stats from mean_var_DB by table name.
+    Optionally filters by gene list.
+    """
+    conn = get_gene_expr_db_connection()
+
+    # Validate table existence
+    cursor = conn.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    valid_tables = [row[0] for row in cursor.fetchall()]
+    if table_name not in valid_tables:
+        conn.close()
+        raise HTTPException(status_code=404, detail=f"Table '{table_name}' not found in mean_var_DB.")
+
+    base_query = f"SELECT * FROM '{table_name}'"
+    if gene_list:
+        gene_str = ', '.join(f"'{g}'" for g in gene_list)
+        query = f"{base_query} WHERE gene_name IN ({gene_str})"
+    else:
+        query = base_query
+
+    try:
+        df = pd.read_sql_query(query, conn)
+    except Exception as e:
+        conn.close()
+        raise HTTPException(status_code=500, detail=f"Error reading table '{table_name}': {e}")
+    finally:
+        conn.close()
+
+    # Dynamic filename
+    if gene_list:
+        if len(gene_list) <= 3:
+            safe_names = [g.replace(" ", "_") for g in gene_list]
+            filename = "_".join(safe_names) + f"_{table_name}_gene_expr.csv"
+        else:
+            filename = f"{len(gene_list)}_{table_name}_gene_expr.csv"
+    else:
+        filename = f"all_{table_name}_gene_expr.csv"
+
+    return df_to_csv_stream(df, filename)
+
+
+# ---------------------------------------------------------------------
 # Root endpoint
 @app.get("/")
 def home():
@@ -293,5 +348,7 @@ def home():
             "/highly_specific": "Download highly specific genes as CSV",
             "/non_specific": "Download housekeeping genes as CSV",
             "/marker": "Download marker genes as CSV"
+            "/gene_expression": "Download gene expression mean and variance tables"
+
         }
     }
