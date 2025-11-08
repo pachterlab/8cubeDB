@@ -1,6 +1,6 @@
 services:
-  # --- BACKEND (FastAPI) ---
   - type: web
+<<<<<<< HEAD
     name: 8cubeDB
     env: python
     plan: starter
@@ -9,14 +9,3 @@ services:
     envVars:
       - key: PORT
         value: 8000
-
-  # --- FRONTEND (Streamlit) ---
-  - type: web
-    name: MouseExplorer
-    env: python
-    plan: free
-    buildCommand: pip install -r 8cube_API/frontend/requirements.txt
-    startCommand: streamlit run 8cube_API/frontend/frontend_app.py --server.port 8501 --server.address 0.0.0.0
-    envVars:
-      - key: PORT
-        value: 8501
