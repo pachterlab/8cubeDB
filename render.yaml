@@ -4,8 +4,8 @@ services:
     name: 8cubeAPI
     env: python
     plan: starter
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn api:app --host 0.0.0.0 --port 8000
+    buildCommand: pip install -r 8cube_API/requirements.txt
+    startCommand: uvicorn 8cube_API.api:app --host 0.0.0.0 --port 8000
     envVars:
       - key: PORT
         value: 8000
@@ -15,8 +15,8 @@ services:
     name: MouseExplorer
     env: python
     plan: free
-    buildCommand: pip install -r frontend/requirements.txt
-    startCommand: streamlit run frontend/frontend_app.py --server.port 8501 --server.address 0.0.0.0
+    buildCommand: pip install -r 8cube_API/frontend/requirements.txt
+    startCommand: streamlit run 8cube_API/frontend/frontend_app.py --server.port 8501 --server.address 0.0.0.0
     envVars:
       - key: PORT
         value: 8501
