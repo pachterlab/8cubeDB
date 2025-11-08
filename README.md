@@ -9,10 +9,10 @@ It includes both a **RESTful API** (built with FastAPI) and an **interactive das
 
 ## 🌐 Access the Platform
 
-* **Frontend Dashboard:** [https://eightcubedb.streamlit.app](https://eightcubedb.streamlit.app)
+* **Frontend Dashboard:** [https://mouseexplorer.onrender.com](https://mouseexplorer.onrender.com)
   Explore genes, visualize Psi-blocks, and browse marker and housekeeping genes interactively.
 
-* **Backend API:** [https://eightcubedb.onrender.com](https://eightcubedb.onrender.com)
+* **Backend API:** [https://eightcubedb.onrender.com/docs](https://eightcubedb.onrender.com/docs)
   Programmatic access to the dataset via REST API.
 
 ---
@@ -36,7 +36,7 @@ All API routes stream data as **CSV downloads** for seamless integration with do
 | `/config`          | Returns available analysis levels, types, and block labels |
 | `/specificity`     | Extract gene specificity data for given genes              |
 | `/psi_block`       | Fetch Psi-block data by analysis level/type                |
-| `/highly_specific` | Retrieve genes highly specific to a given condition        |
+| `/highly_specific` | Retrieve genes highly specific to a given variable         |
 | `/non_specific`    | Retrieve non-specific (housekeeping) genes                 |
 | `/marker`          | Identify marker genes by block label                       |
 | `/gene_expression` | Get gene expression mean and variance values               |
@@ -75,7 +75,7 @@ Built with **Streamlit**, **Plotly**, and **Pandas**, the app offers clean visua
 ```
                 ┌──────────────────────────────┐
                 │      Streamlit Frontend       │
-                │  (https://eightcubedb.streamlit.app) │
+                │  (https://mouseexplorer.onrender.com) │
                 └───────────────┬──────────────┘
                                 │ REST API calls (CSV)
                                 ▼
