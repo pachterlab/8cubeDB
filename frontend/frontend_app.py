@@ -220,7 +220,10 @@ with tab1:
 # ======================================================
 with tab2:
     st.title("🗺️ Specificity Explorer")
+
+    # Gene input
     gene_input = st.text_input("Gene name or Ensembl ID:", key="gene_specificity")
+
     if st.button("Fetch Specificity Data", key="fetch_specificity"):
         genes = [g.strip() for g in gene_input.split(",") if g.strip()]
         if not genes:
@@ -229,6 +232,7 @@ with tab2:
             try:
                 params = [("gene_list", g) for g in genes]
                 response = requests.get(f"{API_URL}/specificity", params=params)
+
                 if response.status_code != 200:
                     st.error(f"API returned {response.status_code}")
                 else:
@@ -237,9 +241,106 @@ with tab2:
                         st.warning("No results found.")
                     else:
                         st.success(f"Loaded {len(df)} rows for {', '.join(genes)}")
+
+                        # --- Display table ---
                         st.dataframe(df, use_container_width=True, height=400)
+
+                        # --- Plot if columns available ---
+                        expected_cols = {
+                            "Analysis_level",
+                            "Analysis_type",
+                            "Psi_mean",
+                            "Psi_std",
+                            "Zeta_mean",
+                            "Zeta_std",
+                        }
+
+                        if expected_cols.issubset(df.columns):
+                            grouped = (
+                                df.groupby(["Analysis_level", "Analysis_type"])
+                                .agg(
+                                    Psi_mean=("Psi_mean", "mean"),
+                                    Psi_std=("Psi_std", "mean"),
+                                    Zeta_mean=("Zeta_mean", "mean"),
+                                    Zeta_std=("Zeta_std", "mean"),
+                                )
+                                .reset_index()
+                            )
+
+                            st.subheader("📊 Ψ (Psi) and ζ (Zeta) Mean ± SD per Analysis Level")
+
+                            levels = grouped["Analysis_level"].unique()
+                            ncols = 2
+                            nrows = math.ceil(len(levels) / ncols)
+
+                            for i in range(nrows):
+                                cols = st.columns(ncols, gap="small")
+                                for j in range(ncols):
+                                    idx = i * ncols + j
+                                    if idx >= len(levels):
+                                        break
+
+                                    level = levels[idx]
+                                    subset = grouped[grouped["Analysis_level"] == level]
+
+                                    fig = go.Figure()
+
+                                    # Ψ mean ± SD
+                                    fig.add_trace(
+                                        go.Bar(
+                                            x=subset["Analysis_type"],
+                                            y=subset["Psi_mean"],
+                                            name="Ψ mean",
+                                            error_y=dict(
+                                                type="data",
+                                                array=subset["Psi_std"],
+                                                visible=True,
+                                            ),
+                                            marker_color="gray",
+                                            opacity=0.85,
+                                        )
+                                    )
+
+                                    # ζ mean ± SD
+                                    fig.add_trace(
+                                        go.Bar(
+                                            x=subset["Analysis_type"],
+                                            y=subset["Zeta_mean"],
+                                            name="ζ mean",
+                                            error_y=dict(
+                                                type="data",
+                                                array=subset["Zeta_std"],
+                                                visible=True,
+                                            ),
+                                            marker_color="lightgray",
+                                            opacity=0.85,
+                                        )
+                                    )
+
+                                    fig.update_layout(
+                                        barmode="group",
+                                        title=f"{level}",
+                                        yaxis=dict(range=[0, 1], title="Specificity (0–1)"),
+                                        xaxis_title="Analysis Type",
+                                        margin=dict(t=40, b=60, l=40, r=20),
+                                        height=400,
+                                        legend=dict(
+                                            orientation="h",
+                                            yanchor="bottom",
+                                            y=1.02,
+                                            xanchor="right",
+                                            x=1
+                                        ),
+                                    )
+
+                                    cols[j].plotly_chart(fig, use_container_width=True)
+
+                        else:
+                            st.warning("Expected columns missing from data (need Psi/Zeta means and stds).")
+
             except Exception as e:
                 st.error(f"Error fetching data: {e}")
+
 
 # ======================================================
 # TAB 3 – HIGHLY SPECIFIC GENES
