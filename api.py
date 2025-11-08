@@ -27,6 +27,22 @@ def get_gene_expr_db_connection():
     return sqlite3.connect(GENE_EXPR_DB_FILE)
 
 # ---------------------------------------------------------------------
+# Helper: Normalize gene and Ensembl IDs
+def normalize_gene_inputs(gene_list: list[str]) -> list[str]:
+    """
+    Normalize gene and Ensembl ID inputs for case-insensitive matching.
+    - Ensembl IDs → uppercase
+    - Gene names → Title Case (first letter capitalized)
+    """
+    normalized = []
+    for g in gene_list:
+        if g.upper().startswith("ENS"):
+            normalized.append(g.upper())
+        else:
+            normalized.append(g.capitalize())
+    return normalized
+
+# ---------------------------------------------------------------------
 # Helper: Get unique values from a column
 def get_unique_values(column_name: str):
     """Get unique values from table_1 for the given column."""
@@ -94,9 +110,6 @@ def get_analysis_config(
     """
     excluded_cols = {"gene_name", "ensembl_id", "Analysis_level", "Analysis_type"}
 
-    # -----------------------------------------------------------------
-    # Case 1: User provides both level and type → return only block labels
-    # -----------------------------------------------------------------
     if analysis_level and analysis_type:
         table_name = f"{analysis_level.value}_{analysis_type.value}"
         block_labels = get_columns_from_table(table_name)
@@ -114,9 +127,6 @@ def get_analysis_config(
             "block_labels": filtered_labels
         }
 
-    # -----------------------------------------------------------------
-    # Case 2: No filters → return full nested dictionary for all combos
-    # -----------------------------------------------------------------
     config = {}
     for level in analysis_levels:
         config[level] = {}
@@ -141,21 +151,23 @@ def get_analysis_config(
 def extract_all_specificity_per_gene(
     gene_list: list[str] = Query(..., description="List of gene names or Ensembl IDs")
 ):
-    """Extract rows where 'gene_name' OR 'ensembl_id' is in gene_list.
-        Describes specificity across entire 8cube dataset. """
+    """Extract rows where 'gene_name' OR 'ensembl_id' is in gene_list."""
     conn = get_db_connection()
+
+    # Normalize input and build query (case-insensitive)
+    gene_list = normalize_gene_inputs(gene_list)
     gene_str = ', '.join(f"'{g}'" for g in gene_list)
     query = f"""
         SELECT *
         FROM table_1
-        WHERE gene_name IN ({gene_str}) OR ensembl_id IN ({gene_str})
+        WHERE gene_name COLLATE NOCASE IN ({gene_str})
+           OR ensembl_id COLLATE NOCASE IN ({gene_str})
     """
     df = pd.read_sql_query(query, conn)
     conn.close()
 
-    # Construct dynamic file name
     if len(gene_list) <= 3:
-        safe_names = [g.replace(" ", "_") for g in gene_list]  # sanitize names
+        safe_names = [g.replace(" ", "_") for g in gene_list]
         filename = "_".join(safe_names) + "_specificity.csv"
     else:
         filename = f"{len(gene_list)}_specificity.csv"
@@ -170,17 +182,15 @@ def extract_psi_block(
     analysis_type: AnalysisType,
     gene_list: Optional[list[str]] = Query(None, description="List of gene names or Ensembl IDs to filter (optional)")
 ):
-    """Reads a psi_block table from the DB based on analysis type and level.
-       Optionally filters by gene(s) and generates a dynamic CSV filename."""
-    
+    """Reads a psi_block table from the DB based on analysis type and level."""
     conn = get_db_connection()
     table_name = f"{analysis_level.value}_{analysis_type.value}"
     base_query = f"SELECT * FROM '{table_name}'"
 
-    # Build query based on whether genes were passed
     if gene_list:
+        gene_list = normalize_gene_inputs(gene_list)
         gene_str = ', '.join(f"'{g}'" for g in gene_list)
-        query = f"{base_query} WHERE gene_name IN ({gene_str}) OR ensembl_id IN ({gene_str})"
+        query = f"{base_query} WHERE gene_name COLLATE NOCASE IN ({gene_str}) OR ensembl_id COLLATE NOCASE IN ({gene_str})"
     else:
         query = base_query
 
@@ -191,7 +201,6 @@ def extract_psi_block(
     finally:
         conn.close()
 
-    # --- Dynamic filename logic ---
     if gene_list:
         if len(gene_list) <= 3:
             safe_names = [g.replace(" ", "_") for g in gene_list]
@@ -290,30 +299,20 @@ def extract_marker(
 def extract_gene_expression(
     analysis_level: AnalysisLevel,
     analysis_type: AnalysisType,
-    gene_list: Optional[list[str]] = Query(
-        None, description="List of gene names or Ensembl IDs to filter (optional)"
-    ),
+    gene_list: Optional[list[str]] = Query(None, description="List of gene names or Ensembl IDs to filter (optional)"),
 ):
-    """
-    Extracts gene expression mean and variance values based on input analysis level and type. 
-    Generates a downloadable CSV.
-    """
-
-    # Connect to mean_var_DB
+    """Extracts gene expression mean and variance values."""
     conn = get_gene_expr_db_connection()
-
-    # Construct table name based on dropdown selections
     table_name = f"{analysis_level.value}_{analysis_type.value}"
     base_query = f"SELECT * FROM '{table_name}'"
 
-    # Build query depending on gene filter
     if gene_list:
+        gene_list = normalize_gene_inputs(gene_list)
         gene_str = ", ".join(f"'{g}'" for g in gene_list)
-        query = f"{base_query} WHERE gene_name IN ({gene_str})"
+        query = f"{base_query} WHERE gene_name COLLATE NOCASE IN ({gene_str})"
     else:
         query = base_query
 
-    # Try executing query
     try:
         df = pd.read_sql_query(query, conn)
     except pd.io.sql.DatabaseError as e:
@@ -323,7 +322,6 @@ def extract_gene_expression(
     finally:
         conn.close()
 
-    # --- Dynamic filename logic ---
     if gene_list:
         if len(gene_list) <= 3:
             safe_names = [g.replace(" ", "_") for g in gene_list]
@@ -333,9 +331,7 @@ def extract_gene_expression(
     else:
         filename = f"all_{table_name}_gene_expr.csv"
 
-    # Stream CSV to client
     return df_to_csv_stream(df, filename)
-
 
 # ---------------------------------------------------------------------
 # Root endpoint
@@ -354,6 +350,5 @@ def home():
             "/non_specific": "Download housekeeping genes as CSV",
             "/marker": "Download marker genes as CSV",
             "/gene_expression": "Download gene expression mean and variance as CSV"
-
         }
     }
