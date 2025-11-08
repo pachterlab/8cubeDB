@@ -3,20 +3,16 @@ services:
   - type: web
     name: 8cubeAPI
     env: python
-    plan: starter   # persistent backend
+    plan: starter
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn api:app --host 0.0.0.0 --port 8000
-    disk:
-      name: data
-      mountPath: /app
-      sizeGB: 10
     envVars:
       - key: PORT
         value: 8000
 
   # --- FRONTEND (Streamlit) ---
   - type: web
-    name: 8cubeExplorer
+    name: MouseExplorer
     env: python
     plan: free
     buildCommand: pip install -r frontend/requirements.txt
