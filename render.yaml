@@ -1,7 +1,7 @@
 services:
   # --- BACKEND (FastAPI) ---
   - type: web
-    name: 8cubeAPI
+    name: 8cubeDB
     env: python
     plan: starter
     buildCommand: pip install -r 8cube_API/requirements.txt
