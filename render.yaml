@@ -3,7 +3,7 @@ services:
   - type: web
     name: 8cubeAPI
     env: python
-    plan: starter   # persistent storage
+    plan: starter   # persistent backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn api:app --host 0.0.0.0 --port 8000
     disk:
@@ -18,7 +18,7 @@ services:
   - type: web
     name: 8cubeExplorer
     env: python
-    plan: free      # free plan is enough for UI
+    plan: free
     buildCommand: pip install -r frontend/requirements.txt
     startCommand: streamlit run frontend/frontend_app.py --server.port 8501 --server.address 0.0.0.0
     envVars:

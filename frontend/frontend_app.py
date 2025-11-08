@@ -8,7 +8,7 @@ import os
 import streamlit as st
 
 
-API_URL = "https://8cubeapi.onrender.com"
+API_URL = "https://eightcubedb.onrender.com"
 
 st.set_page_config(page_title="8cubeDB Dashboard", layout="wide")
 
