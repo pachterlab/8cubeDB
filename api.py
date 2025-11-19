@@ -270,14 +270,15 @@ def extract_marker(
     psi_cutoff: float = 0.5,
     psi_block_cutoff: float = 0.5
 ):
-    """Extracts marker genes by merging the main table with a psi_block table."""
     conn = get_db_connection()
-    main_table_name = "table_1"
-    psi_block_table_name = f"{analysis_level.value}_{analysis_type.value}"
+    main_table_name = '"table_1"' 
+    psi_block_table = f'{analysis_level.value}_{analysis_type.value}'
+    psi_block_table_quoted = f'"{psi_block_table}"' 
+
     query = f"""
         SELECT T1.*, T2."{block_label}"
         FROM {main_table_name} AS T1
-        INNER JOIN {psi_block_table_name} AS T2
+        INNER JOIN {psi_block_table_quoted} AS T2
             ON T1.gene_name = T2.gene_name
         WHERE T1.Analysis_level = '{analysis_level.value}'
           AND T1.Analysis_type = '{analysis_type.value}'
@@ -291,7 +292,9 @@ def extract_marker(
         raise HTTPException(status_code=500, detail=f"Error executing JOIN query: {e}")
     finally:
         conn.close()
+
     return df_to_csv_stream(df, "marker_genes.csv")
+
 
 # ---------------------------------------------------------------------
 # Endpoint: Gene Expression (mean/variance tables)
