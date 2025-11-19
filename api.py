@@ -297,22 +297,29 @@ def extract_marker(
 
 
 # ---------------------------------------------------------------------
-# Endpoint: Gene Expression (mean/variance tables)
 @app.get("/gene_expression")
 def extract_gene_expression(
     analysis_level: AnalysisLevel,
     analysis_type: AnalysisType,
-    gene_list: Optional[list[str]] = Query(None, description="List of gene names or Ensembl IDs to filter (optional)"),
+    gene_list: Optional[list[str]] = Query(
+        None, description="List of gene names or Ensembl IDs"
+    ),
 ):
     """Extracts gene expression mean and variance values."""
     conn = get_gene_expr_db_connection()
     table_name = f"{analysis_level.value}_{analysis_type.value}"
-    base_query = f"SELECT * FROM '{table_name}'"
+    base_query = f'SELECT * FROM "{table_name}"'   # <-- quoting is correct
 
     if gene_list:
         gene_list = normalize_gene_inputs(gene_list)
         gene_str = ", ".join(f"'{g}'" for g in gene_list)
-        query = f"{base_query} WHERE gene_name COLLATE NOCASE IN ({gene_str})"
+
+        # FIX: search both gene_name and ensembl_id
+        query = f"""
+            {base_query}
+            WHERE gene_name COLLATE NOCASE IN ({gene_str})
+               OR ensembl_id COLLATE NOCASE IN ({gene_str})
+        """
     else:
         query = base_query
 
@@ -325,6 +332,7 @@ def extract_gene_expression(
     finally:
         conn.close()
 
+    # filenames remain unchanged
     if gene_list:
         if len(gene_list) <= 3:
             safe_names = [g.replace(" ", "_") for g in gene_list]
@@ -335,6 +343,7 @@ def extract_gene_expression(
         filename = f"all_{table_name}_gene_expr.csv"
 
     return df_to_csv_stream(df, filename)
+
 
 # ---------------------------------------------------------------------
 # Root endpoint
