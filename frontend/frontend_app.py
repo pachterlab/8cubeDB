@@ -96,7 +96,7 @@ st.markdown(
 
     <div class="title-center">
         <h1>Mouse Specificity Explorer 🐭</h1>
-        <p>Exploring gene specificity in Rebboah et al. (2025) founder mouse data</p>
+        <p>Exploring gene specificity in 8 tissues across 8 founder mouse strains</p>
     </div>
     <hr/>
     """,
@@ -488,9 +488,22 @@ st.markdown(
 
     <div class="footer">
         <p><strong>Developed by:</strong> Nikhila P. Swarna, Pachter Lab, Caltech</p>
-         <p>© 2025 Pachter Lab · Licensed under <a href="https://opensource.org/licenses/BSD-2-Clause" target="_blank">BSD-2</a> · 
+        <p>© 2025 Pachter Lab · Licensed under <a href="https://opensource.org/licenses/BSD-2-Clause" target="_blank">BSD-2</a> · 
            Part of the <a href="https://www.igvf.org" target="_blank">IGVF Consortium</a></p>
-        <p> Specificity analyses done using ember. <a href="https://github.com/pachterlab/ember" target="_blank">🔗 View ember GitHub</a></p>
+
+        <p>Data from this website can be programmatically accessed using 8cubeDB API 
+           <a href="https://eightcubedb.onrender.com/docs" target="_blank">🔗 API Docs</a></p>
+
+        <p><a href="https://github.com/pachterlab/8cubeDB" target="_blank">🔗 View API GitHub</a></p>
+
+        <p>Specificity analyses done using ember. 
+           <a href="https://github.com/pachterlab/ember" target="_blank">🔗 ember GitHub</a></p>
+
+        <p><strong>If you use this website, please cite the following papers:</strong></p>
+        <p>
+            • Rebboah E, et al. <em>Systematic cell-type resolved transcriptomes of 8 tissues in 8 lab and wild-derived mouse strains captures global and local expression variation.</em> (2025)<br>
+            • Swarna NP, et al. <em>Determining gene specificity from multivariate single-cell RNA sequencing data.</em> (2025)
+        </p>
     </div>
     """,
     unsafe_allow_html=True
