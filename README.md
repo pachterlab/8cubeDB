@@ -1,6 +1,6 @@
 # 8cubeDB: Mouse Specificity Explorer 🐭
 
-### Exploring gene specificity in *Rebboah et al. (2025)* founder mouse data
+### Exploring gene specificity in 8 tissues across 8 founder mouse strains
 
 **8cubeDB** provides a unified platform to explore gene specificity, marker genes, and expression variability across founder mouse tissues from the *Rebboah et al. (2025)* dataset.
 It includes both a **RESTful API** (built with FastAPI) and an **interactive dashboard** (built with Streamlit).
@@ -73,23 +73,23 @@ Built with **Streamlit**, **Plotly**, and **Pandas**, the app offers clean visua
 ## ⚙️ Architecture Overview
 
 ```
-                ┌──────────────────────────────┐
-                │      Streamlit Frontend       │
+                ┌───────────────────────────────────────┐
+                │      Streamlit Frontend               │
                 │  (https://mouseexplorer.onrender.com) │
-                └───────────────┬──────────────┘
+                └───────────────┬───────────────────────┘
                                 │ REST API calls (CSV)
                                 ▼
-                ┌──────────────────────────────┐
-                │        FastAPI Backend        │
-                │  (https://eightcubedb.onrender.com) │
-                └───────────────┬──────────────┘
-                                │ SQLite Queries
-                                ▼
-                ┌──────────────────────────────┐
-                │        SQLite Databases       │
-                │   - 8cube.db                  │
-                │   - mean_var_DB.db            │
-                └──────────────────────────────┘
+                 ┌──────────────────────────────────────┐
+                 │        FastAPI Backend               │
+                 │  (https://eightcubedb.onrender.com)  │
+                 └───────────────┬──────────────────────┘
+                                 │ SQLite Queries
+                                 ▼
+                    ┌──────────────────────────────┐
+                    │        SQLite Databases      │
+                    │   - 8cube.db                 │
+                    │   - mean_var_DB.db           │
+                    └──────────────────────────────┘
 ```
 
 ---
@@ -111,10 +111,14 @@ Licensed under the **BSD 2-Clause License**.
 
 ---
 
-## Citation
+##  Citation
 
-If you use 8cubeDB or its analyses, please cite:
+If you use this website or the accompanying database, please cite the following papers:
 
-> **Swarna et al. (2025)**
-> *Determining genes specificty from multimodal single-cell data*.
-> [DOI forthcoming]
+* **Rebboah E, et al.**
+  *Systematic cell-type resolved transcriptomes of 8 tissues in 8 lab and wild-derived mouse strains captures global and local expression variation.* (2025)
+  **DOI:** [https://doi.org/10.1101/2025.04.21.649844](https://doi.org/10.1101/2025.04.21.649844)
+
+* **Swarna NP, et al.**
+  *Determining gene specificity from multivariate single-cell RNA sequencing data.* (2025)
+  **DOI:** [DOI forthcoming]
