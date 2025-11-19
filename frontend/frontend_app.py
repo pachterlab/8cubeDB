@@ -461,7 +461,9 @@ with tab5:
             st.error(f"Error {res.status_code} fetching data.")
 
             
-            # --- Footer styling and content ---
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+
+# --- Footer styling and content ---
 st.markdown(
     """
     <style>
