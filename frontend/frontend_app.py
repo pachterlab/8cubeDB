@@ -504,12 +504,12 @@ footer_html = """
     <p><strong>If you use this website, please cite the following papers:</strong></p>
     <p>
         • Rebboah E, et al. 
-        <em>Systematic cell-type resolved transcriptomes …</em> (2025)<br>
+        <em>Systematic cell-type resolved transcriptomes of 8 tissues in 8 lab and wild-derived mouse strains captures global and local expression variation</em> (2025)<br>
         DOI: <a href="https://doi.org/10.1101/2025.04.21.649844" target="_blank">10.1101/2025.04.21.649844</a>
     </p>
     <p>
         • Swarna NP, et al. 
-        <em>Determining gene specificity…</em> (2025)<br>
+        <em>Determining gene specificity from multivariate single-cell RNA sequencing data</em> (2025)<br>
         DOI forthcoming
     </p>
 </div>
