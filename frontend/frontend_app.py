@@ -460,68 +460,59 @@ with tab5:
         else:
             st.error(f"Error {res.status_code} fetching data.")
 
-            
+# --- Spacer ---
 st.markdown("<br><br><br>", unsafe_allow_html=True)
 
-# --- Footer styling and content ---
-st.markdown(
-    """
-    <style>
-        .footer {
-            width: 100%;
-            padding: 25px 10px 15px 10px;
-            text-align: center;
-            color: #6b7280;
-            font-size: 14px;
-            border-top: 1px solid #e5e7eb;
-            margin-top: 60px;
-        }
-        .footer a {
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: 500;
-        }
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
+# --- Footer ---
+footer_html = """
+<style>
+    .footer {
+        width: 100%;
+        padding: 25px 10px 15px 10px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 14px;
+        border-top: 1px solid #e5e7eb;
+        margin-top: 60px;
+    }
+    .footer a {
+        color: #4f46e5;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .footer a:hover {
+        text-decoration: underline;
+    }
+</style>
 
-    <div class="footer">
+<div class="footer">
+    <p><strong>Developed by:</strong> Nikhila P. Swarna, Pachter Lab, Caltech</p>
+    <p>
+        © 2025 Pachter Lab · Licensed under 
+        <a href="https://opensource.org/licenses/BSD-2-Clause" target="_blank">BSD-2</a> · 
+        Part of the <a href="https://www.igvf.org" target="_blank">IGVF Consortium</a>
+    </p>
+    <p>
+        Data from this website can be accessed programmatically using the 8cubeDB API:<br>
+        <a href="https://eightcubedb.onrender.com/docs" target="_blank">🔗 API Docs</a> ·
+        <a href="https://github.com/pachterlab/8cubeDB" target="_blank">🔗 API GitHub</a>
+    </p>
+    <p>
+        Specificity analyses performed using 
+        <a href="https://github.com/pachterlab/ember" target="_blank">ember</a>.
+    </p>
+    <p><strong>If you use this website, please cite the following papers:</strong></p>
+    <p>
+        • Rebboah E, et al. 
+        <em>Systematic cell-type resolved transcriptomes …</em> (2025)<br>
+        DOI: <a href="https://doi.org/10.1101/2025.04.21.649844" target="_blank">10.1101/2025.04.21.649844</a>
+    </p>
+    <p>
+        • Swarna NP, et al. 
+        <em>Determining gene specificity…</em> (2025)<br>
+        DOI forthcoming
+    </p>
+</div>
+"""
 
-        <p><strong>Developed by:</strong> Nikhila P. Swarna, Pachter Lab, Caltech</p>
-
-        <p>
-            © 2025 Pachter Lab · Licensed under 
-            <a href="https://opensource.org/licenses/BSD-2-Clause" target="_blank">BSD-2</a> · 
-            Part of the <a href="https://www.igvf.org" target="_blank">IGVF Consortium</a>
-        </p>
-
-        <p>
-            Data from this website can be programmatically accessed using the 8cubeDB API:<br>
-            <a href="https://eightcubedb.onrender.com/docs" target="_blank">🔗 API Docs</a> ·
-            <a href="https://github.com/pachterlab/8cubeDB" target="_blank">🔗 API GitHub</a>
-        </p>
-
-        <p>
-            Specificity analyses performed using 
-            <a href="https://github.com/pachterlab/ember" target="_blank">ember</a>.
-        </p>
-
-        <p><strong>If you use this website, please cite the following papers:</strong></p>
-
-        <p>
-            &bull; Rebboah E, et al. 
-            <em>Systematic cell-type resolved transcriptomes of 8 tissues in 8 lab and wild-derived mouse strains captures global and local expression variation.</em> (2025)<br>
-            DOI: <a href="https://doi.org/10.1101/2025.04.21.649844" target="_blank">https://doi.org/10.1101/2025.04.21.649844</a>
-        </p>
-
-        <p>
-            &bull; Swarna NP, et al. 
-            <em>Determining gene specificity from multivariate single-cell RNA sequencing data.</em> (2025)<br>
-            DOI forthcoming
-        </p>
-
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown(footer_html, unsafe_allow_html=True)
