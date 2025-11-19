@@ -1,6 +1,6 @@
 # 8cubeDB: Mouse Specificity Explorer 🐭
 
-### Exploring gene specificity in 8 tissues across 8 founder mouse strains
+### Exploring gene specificity in 8 tissues from 8 individuals for each of the 8 founder mouse strains
 
 **8cubeDB** provides a unified platform to explore gene specificity, marker genes, and expression variability across founder mouse tissues from the *Rebboah et al. (2025)* dataset.
 It includes both a **RESTful API** (built with FastAPI) and an **interactive dashboard** (built with Streamlit).

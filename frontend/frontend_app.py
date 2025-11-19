@@ -96,7 +96,7 @@ st.markdown(
 
     <div class="title-center">
         <h1>Mouse Specificity Explorer 🐭</h1>
-        <p>Exploring gene specificity in 8 tissues across 8 founder mouse strains</p>
+        <p>Exploring gene specificity in 8 tissues from 8 individuals for each of the 8 founder mouse strains</p>
     </div>
     <hr/>
     """,
