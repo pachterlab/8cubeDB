@@ -13,7 +13,7 @@ It includes both a **RESTful API** (built with FastAPI) and an **interactive das
   Explore genes, visualize Psi-blocks, and browse marker and housekeeping genes interactively.
 
 * **Backend API:** [https://eightcubedb.onrender.com/docs](https://eightcubedb.onrender.com/docs)
-  Programmatic access to the dataset via REST API. Refer to this [collab notebook](https://colab.research.google.com/drive/1ALSKoH1N-szB761yZ7Y2nQjaoe3b7Gr5?usp=sharing) for a tutorial on how to query the database in python.
+  Programmatic access to the dataset via REST API. Refer to this [colab notebook](https://colab.research.google.com/drive/1ALSKoH1N-szB761yZ7Y2nQjaoe3b7Gr5?usp=sharing) for a tutorial on how to query the database in python.
 
 ---
 
