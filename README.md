@@ -63,7 +63,7 @@ Built with **Streamlit**, **Plotly**, and **Pandas**, the app offers clean visua
 
 ## Data Summary
 
-* **Dataset:** Rebboah et al. (2025) — *8cube founder mouse dataset*
+* **Dataset:** Rebboah _et al_. (2025) — *8cube founder mouse dataset*
 * **Metrics:** Ψ (Psi) specificity index and ζ (Zeta) selectivity metric
 * **Levels:** Multi-scale analysis (cell type, tissue, organ, etc.)
 * **Sources:** Derived from `table_1` (global summary) and `*_psi_block` tables (block-level metrics)
@@ -115,10 +115,10 @@ Licensed under the **BSD 2-Clause License**.
 
 If you use this website or the accompanying database, please cite the following papers:
 
-* **Rebboah E, et al.**
+* **Rebboah E, _et al_.**
   *Systematic cell-type resolved transcriptomes of 8 tissues in 8 lab and wild-derived mouse strains captures global and local expression variation.* (2025)
   **DOI:** [https://doi.org/10.1101/2025.04.21.649844](https://doi.org/10.1101/2025.04.21.649844)
 
-* **Swarna NP, et al.**
+* **Swarna NP, _et al_.**
   *Determining gene specificity from multivariate single-cell RNA sequencing data.* (2025)
   **DOI:** [DOI forthcoming]
