@@ -510,7 +510,7 @@ footer_html = """
     <p>
         • Swarna NP, et al. 
         <em>Determining gene specificity from multivariate single-cell RNA sequencing data</em> (2025)<br>
-        DOI forthcoming
+        DOI: <a href="https://doi.org/10.1101/2025.11.21.689845" target="_blank">10.1101/2025.11.21.689845</a>
     </p>
 </div>
 """
