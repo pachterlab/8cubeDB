@@ -121,4 +121,4 @@ If you use this website or the accompanying database, please cite the following 
 
 * **Swarna NP, _et al_.**
   *Determining gene specificity from multivariate single-cell RNA sequencing data.* (2025)
-  **DOI:** [DOI forthcoming]
+  **DOI:** [https://doi.org/10.1101/2025.11.21.689845](https://doi.org/10.1101/2025.11.21.689845)
