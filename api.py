@@ -1,11 +1,13 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from fastapi.responses import StreamingResponse
+from sse_starlette.sse import EventSourceResponse        
 import pandas as pd
 import sqlite3
 import os
 import io
 from enum import Enum
 from typing import Optional
+
 
 # ---------------------------------------------------------------------
 # Path to your SQLite database
@@ -363,4 +365,50 @@ def home():
             "/marker": "Download marker genes as CSV",
             "/gene_expression": "Download gene expression mean and variance as CSV"
         }
+    }
+
+# ============================================================================
+# MCP SERVER INTEGRATION (CORRECTED)
+# ============================================================================
+
+from mcp.server.fastapi import FastApiSseServerTransport
+from mcp_server import server as mcp_logic
+
+# Initialize the SSE transport with the correct path
+mcp_sse_transport = FastApiSseServerTransport("/mcp/sse")
+
+# CRITICAL: Use connect() to attach your MCP server logic
+@app.on_event("startup")
+async def startup_mcp():
+    """Initialize MCP server on startup"""
+    await mcp_sse_transport.connect(mcp_logic)
+
+# SSE endpoint - this is where MCP clients connect
+@app.get("/mcp/sse")
+async def handle_mcp_sse(request: Request):
+    """Handle MCP Server-Sent Events connection"""
+    return await mcp_sse_transport.handle_sse(
+        request.scope,
+        request.receive, 
+        request._send
+    )
+
+# Messages endpoint - this is where MCP clients send requests
+@app.post("/mcp/messages")  
+async def handle_mcp_messages(request: Request):
+    """Handle MCP message POST requests"""
+    return await mcp_sse_transport.handle_post_message(
+        request.scope,
+        request.receive,
+        request._send
+    )
+
+# Health check for MCP server
+@app.get("/mcp/health")
+async def mcp_health():
+    """Check if MCP server is running"""
+    return {
+        "status": "ok",
+        "server": "8cubeDB-Explorer",
+        "mcp_version": "1.0.0"
     }
