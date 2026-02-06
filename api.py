@@ -374,7 +374,7 @@ def home():
 # MCP SERVER INTEGRATION - MANUAL IMPLEMENTATION
 # ============================================================================
 
-# Import the MCP server we created
+# Import the MCP server 
 from mcp_server import server as mcp_server
 
 @app.get("/mcp/sse")
@@ -443,7 +443,15 @@ async def mcp_messages_endpoint(request: Request):
     # Handle tools/list
     if method == "tools/list":
         try:
-            tools_list = await mcp_server.list_tools()
+            # The server has a _list_tools_handler attribute that's the decorated function
+            # We need to call it directly (it's async)
+            if hasattr(mcp_server, '_list_tools_handler'):
+                tools_list = await mcp_server._list_tools_handler()
+            else:
+                # Fallback: manually import the list_tools function from mcp_server module
+                from mcp_server import list_tools
+                tools_list = await list_tools()
+            
             return {
                 "jsonrpc": "2.0",
                 "id": msg_id,
@@ -459,12 +467,13 @@ async def mcp_messages_endpoint(request: Request):
                 }
             }
         except Exception as e:
+            import traceback
             return {
                 "jsonrpc": "2.0",
                 "id": msg_id,
                 "error": {
                     "code": -32603,
-                    "message": f"Internal error listing tools: {str(e)}"
+                    "message": f"Internal error listing tools: {str(e)}\n{traceback.format_exc()}"
                 }
             }
     
@@ -485,8 +494,13 @@ async def mcp_messages_endpoint(request: Request):
                     }
                 }
             
-            # Call the tool
-            result = await mcp_server.call_tool(tool_name, arguments)
+            # Call the tool handler
+            if hasattr(mcp_server, '_call_tool_handler'):
+                result = await mcp_server._call_tool_handler(tool_name, arguments)
+            else:
+                # Fallback: manually import the call_tool function
+                from mcp_server import call_tool
+                result = await call_tool(tool_name, arguments)
             
             # Convert TextContent to response format
             content_list = []
@@ -516,12 +530,13 @@ async def mcp_messages_endpoint(request: Request):
             }
         except Exception as e:
             # Other error
+            import traceback
             return {
                 "jsonrpc": "2.0",
                 "id": msg_id,
                 "error": {
                     "code": -32603,
-                    "message": f"Error calling tool: {str(e)}"
+                    "message": f"Error calling tool: {str(e)}\n{traceback.format_exc()}"
                 }
             }
     
