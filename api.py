@@ -7,6 +7,8 @@ import os
 import io
 from enum import Enum
 from typing import Optional
+import json
+import asyncio
 
 
 # ---------------------------------------------------------------------
@@ -310,13 +312,12 @@ def extract_gene_expression(
     """Extracts gene expression mean and variance values."""
     conn = get_gene_expr_db_connection()
     table_name = f"{analysis_level.value}_{analysis_type.value}"
-    base_query = f'SELECT * FROM "{table_name}"'   # <-- quoting is correct
+    base_query = f'SELECT * FROM "{table_name}"'
 
     if gene_list:
         gene_list = normalize_gene_inputs(gene_list)
         gene_str = ", ".join(f"'{g}'" for g in gene_list)
 
-        # FIX: search both gene_name and ensembl_id
         query = f"""
             {base_query}
             WHERE gene_name COLLATE NOCASE IN ({gene_str})
@@ -334,7 +335,6 @@ def extract_gene_expression(
     finally:
         conn.close()
 
-    # filenames remain unchanged
     if gene_list:
         if len(gene_list) <= 3:
             safe_names = [g.replace(" ", "_") for g in gene_list]
@@ -363,52 +363,192 @@ def home():
             "/highly_specific": "Download highly specific genes as CSV",
             "/non_specific": "Download housekeeping genes as CSV",
             "/marker": "Download marker genes as CSV",
-            "/gene_expression": "Download gene expression mean and variance as CSV"
+            "/gene_expression": "Download gene expression mean and variance as CSV",
+            "/mcp/sse": "MCP Server-Sent Events endpoint",
+            "/mcp/messages": "MCP messages endpoint",
+            "/mcp/health": "MCP health check"
         }
     }
 
 # ============================================================================
-# MCP SERVER INTEGRATION (CORRECTED)
+# MCP SERVER INTEGRATION - MANUAL IMPLEMENTATION
 # ============================================================================
 
-from mcp.server.fastapi import FastApiSseServerTransport
-from mcp_server import server as mcp_logic
+# Import the MCP server we created
+from mcp_server import server as mcp_server
 
-# Initialize the SSE transport with the correct path
-mcp_sse_transport = FastApiSseServerTransport("/mcp/sse")
-
-# CRITICAL: Use connect() to attach your MCP server logic
-@app.on_event("startup")
-async def startup_mcp():
-    """Initialize MCP server on startup"""
-    await mcp_sse_transport.connect(mcp_logic)
-
-# SSE endpoint - this is where MCP clients connect
 @app.get("/mcp/sse")
-async def handle_mcp_sse(request: Request):
-    """Handle MCP Server-Sent Events connection"""
-    return await mcp_sse_transport.handle_sse(
-        request.scope,
-        request.receive, 
-        request._send
-    )
+async def mcp_sse_endpoint(request: Request):
+    """
+    SSE endpoint for MCP protocol.
+    Keeps connection open and sends events.
+    """
+    async def event_generator():
+        # Send endpoint notification
+        yield {
+            "event": "endpoint",
+            "data": json.dumps("/mcp/messages")
+        }
+        
+        # Keep connection alive with periodic pings
+        try:
+            while True:
+                await asyncio.sleep(15)
+                # Send keepalive ping
+                yield {"event": "ping", "data": ""}
+        except asyncio.CancelledError:
+            # Client disconnected
+            pass
+    
+    return EventSourceResponse(event_generator())
 
-# Messages endpoint - this is where MCP clients send requests
-@app.post("/mcp/messages")  
-async def handle_mcp_messages(request: Request):
-    """Handle MCP message POST requests"""
-    return await mcp_sse_transport.handle_post_message(
-        request.scope,
-        request.receive,
-        request._send
-    )
 
-# Health check for MCP server
+@app.post("/mcp/messages")
+async def mcp_messages_endpoint(request: Request):
+    """
+    Handle MCP JSON-RPC messages.
+    Supports tools/list and tools/call methods.
+    """
+    try:
+        body = await request.json()
+    except Exception as e:
+        return {
+            "jsonrpc": "2.0",
+            "error": {
+                "code": -32700,
+                "message": f"Parse error: {str(e)}"
+            }
+        }
+    
+    method = body.get("method")
+    msg_id = body.get("id")
+    
+    # Handle initialize
+    if method == "initialize":
+        return {
+            "jsonrpc": "2.0",
+            "id": msg_id,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {
+                    "tools": {}
+                },
+                "serverInfo": {
+                    "name": "8cubeDB-Explorer",
+                    "version": "1.0.0"
+                }
+            }
+        }
+    
+    # Handle tools/list
+    if method == "tools/list":
+        try:
+            tools_list = await mcp_server.list_tools()
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "tools": [
+                        {
+                            "name": tool.name,
+                            "description": tool.description,
+                            "inputSchema": tool.inputSchema
+                        }
+                        for tool in tools_list
+                    ]
+                }
+            }
+        except Exception as e:
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {
+                    "code": -32603,
+                    "message": f"Internal error listing tools: {str(e)}"
+                }
+            }
+    
+    # Handle tools/call
+    if method == "tools/call":
+        try:
+            params = body.get("params", {})
+            tool_name = params.get("name")
+            arguments = params.get("arguments", {})
+            
+            if not tool_name:
+                return {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {
+                        "code": -32602,
+                        "message": "Missing tool name in params"
+                    }
+                }
+            
+            # Call the tool
+            result = await mcp_server.call_tool(tool_name, arguments)
+            
+            # Convert TextContent to response format
+            content_list = []
+            for item in result:
+                content_list.append({
+                    "type": "text",
+                    "text": item.text
+                })
+            
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "result": {
+                    "content": content_list
+                }
+            }
+            
+        except ValueError as e:
+            # Tool not found
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {
+                    "code": -32601,
+                    "message": str(e)
+                }
+            }
+        except Exception as e:
+            # Other error
+            return {
+                "jsonrpc": "2.0",
+                "id": msg_id,
+                "error": {
+                    "code": -32603,
+                    "message": f"Error calling tool: {str(e)}"
+                }
+            }
+    
+    # Handle notifications (no response needed)
+    if "id" not in body:
+        return {"status": "ok"}
+    
+    # Unknown method
+    return {
+        "jsonrpc": "2.0",
+        "id": msg_id,
+        "error": {
+            "code": -32601,
+            "message": f"Method not found: {method}"
+        }
+    }
+
+
 @app.get("/mcp/health")
 async def mcp_health():
-    """Check if MCP server is running"""
+    """Health check for MCP server"""
     return {
         "status": "ok",
         "server": "8cubeDB-Explorer",
-        "mcp_version": "1.0.0"
+        "version": "1.0.0",
+        "endpoints": {
+            "sse": "/mcp/sse",
+            "messages": "/mcp/messages"
+        }
     }
