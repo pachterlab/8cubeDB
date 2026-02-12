@@ -80,7 +80,7 @@ To use 8cubeDB directly within the Claude Desktop app, follow these steps:
 
 1. **Download** the [mcp_server_local_for_claude.py](./mcp_server_local_for_claude.py) file from this repository.
 2. **Locate your config file:**
-* **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+* **macOS:** `~/Library/Application\ Support/Claude/claude_desktop_config.json`
 * **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
 
 
