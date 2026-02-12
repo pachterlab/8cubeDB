@@ -3,7 +3,7 @@
 ### Exploring gene specificity in 8 tissues from 8 individuals for each of the 8 founder mouse strains
 
 **8cubeDB** provides a unified platform to explore gene specificity, marker genes, and expression variability across founder mouse tissues from the *Rebboah et al. (2025)* dataset.
-It includes both a **RESTful API** (built with FastAPI) and an **interactive dashboard** (built with Streamlit).
+It includes both a **RESTful API** (built with FastAPI), an **interactive dashboard** (built with Streamlit) and **MCP Server integration** for LLM-powered data analysis.
 
 ---
 
@@ -14,6 +14,9 @@ It includes both a **RESTful API** (built with FastAPI) and an **interactive das
 
 * **Backend API:** [https://eightcubedb.onrender.com/docs](https://eightcubedb.onrender.com/docs)
   Programmatic access to the dataset via REST API. Refer to this [colab notebook](https://colab.research.google.com/drive/1ALSKoH1N-szB761yZ7Y2nQjaoe3b7Gr5?usp=sharing) for a tutorial on how to query the database in python.
+  
+* **MCP Server (Hosted SSE Endpoint):** [https://eightcubedb.onrender.com/mcp/sse](https://eightcubedb.onrender.com/mcp/sse)
+  Enables direct integration with LLM clients that support the Model Context Protocol (MCP).
 
 ---
 
@@ -61,6 +64,46 @@ Built with **Streamlit**, **Plotly**, and **Pandas**, the app offers clean visua
 
 ---
 
+### 🤖 AI & LLM Integration (MCP)
+
+8cubeDB supports the **Model Context Protocol (MCP)**, allowing AI assistants like Claude to query the database directly to answer questions about mouse gene specificity.
+
+#### 1. Hosted MCP (Remote)
+
+You can connect your MCP-compatible client to our hosted SSE endpoint:
+
+* **Endpoint:** `https://eightcubedb.onrender.com/mcp/sse`
+
+#### 2. Local MCP (For Claude Desktop)
+
+To use 8cubeDB directly within the Claude Desktop app, follow these steps:
+
+1. **Download** the [mcp_server_local_for_claude.py](./mcp_server_local_for_claude.py) file from this repository.
+2. **Locate your config file:**
+* **macOS:** `~/Library/Application Support/Claude/claude_desktop_config.json`
+* **Windows:** `%APPDATA%\Claude\claude_desktop_config.json`
+
+
+3. **Add the following configuration** (ensure you update the paths to your specific Python environment and the location of the downloaded script):
+
+```json
+{
+  "mcpServers": {
+    "8cubedb": {
+      "command": "/YOUR/PATH/TO/python",
+      "args": [
+        "/YOUR/PATH/TO/mcp_server_local_for_claude.py"
+      ]
+    }
+  }
+}
+
+```
+
+---
+
+
+
 ## Data Summary
 
 * **Dataset:** Rebboah _et al_. (2025) — *8cube founder mouse dataset*
@@ -73,25 +116,28 @@ Built with **Streamlit**, **Plotly**, and **Pandas**, the app offers clean visua
 ## ⚙️ Architecture Overview
 
 ```
-                ┌───────────────────────────────────────┐
-                │      Streamlit Frontend               │
-                │  (https://mouseexplorer.onrender.com) │
-                └───────────────┬───────────────────────┘
-                                │ REST API calls (CSV)
-                                ▼
-                 ┌──────────────────────────────────────┐
-                 │        FastAPI Backend               │
-                 │  (https://eightcubedb.onrender.com)  │
-                 └───────────────┬──────────────────────┘
-                                 │ SQLite Queries
-                                 ▼
-                    ┌──────────────────────────────┐
-                    │        SQLite Databases      │
-                    │   - 8cube.db                 │
-                    │   - mean_var_DB.db           │
-                    └──────────────────────────────┘
-```
 
+                        ┌──────────────────────────────┐
+                        │        SQLite Databases      │
+                        │   - 8cube.db                 │
+                        │   - mean_var_DB.db           │
+                        └───────────────┬──────────────┘
+                                        │ SQLite Queries
+                                        ▼
+                        ┌──────────────────────────────┐
+                        │        FastAPI Backend       │
+                        │  (eightcubedb.onrender.com)  │
+                        └───────────────┬──────────────┘
+                                        │
+                        ┌───────────────┴───────────────┐
+                        │                               │
+                        ▼                               ▼
+        ┌──────────────────────────────┐   ┌──────────────────────────────┐
+        │        Streamlit Frontend    │   │        MCP Server (SSE)      │
+        │  mouseexplorer.onrender.com  │   │  /mcp/sse or local Claude    │
+        └──────────────────────────────┘   └──────────────────────────────┘
+
+```
 ---
 
 ## Project Attribution
@@ -113,7 +159,7 @@ Licensed under the **BSD 2-Clause License**.
 
 ##  Citation
 
-If you use this website or the accompanying database, please cite the following papers:
+If you use this website, MCP server or the accompanying database, please cite the following papers:
 
 * **Rebboah E, _et al_.**
   *Systematic cell-type resolved transcriptomes of 8 tissues in 8 lab and wild-derived mouse strains captures global and local expression variation.* (2025)
