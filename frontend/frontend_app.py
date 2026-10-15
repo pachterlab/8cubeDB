@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import io
 import pandas as pd
 import plotly.graph_objects as go
 import math
@@ -160,10 +161,10 @@ with tab1:
 
             try:
                 psi_res = requests.get(f"{API_URL}/psi_block", params=psi_params)
-                psi_df = pd.read_csv(psi_res.url) if psi_res.status_code == 200 else pd.DataFrame()
+                psi_df = pd.read_csv(io.StringIO(psi_res.text)) if psi_res.status_code == 200 else pd.DataFrame()
 
                 expr_res = requests.get(f"{API_URL}/gene_expression", params=expr_params)
-                expr_df = pd.read_csv(expr_res.url) if expr_res.status_code == 200 else pd.DataFrame()
+                expr_df = pd.read_csv(io.StringIO(expr_res.text)) if expr_res.status_code == 200 else pd.DataFrame()
 
                 c1, c2 = st.columns(2, gap="medium")
 
@@ -236,7 +237,7 @@ with tab2:
                 if response.status_code != 200:
                     st.error(f"API returned {response.status_code}")
                 else:
-                    df = pd.read_csv(response.url)
+                    df = pd.read_csv(io.StringIO(response.text))
                     if df.empty:
                         st.warning("No results found.")
                     else:
@@ -374,7 +375,7 @@ with tab3:
         }
         res = requests.get(f"{API_URL}/highly_specific", params=params)
         if res.status_code == 200:
-            df = pd.read_csv(res.url)
+            df = pd.read_csv(io.StringIO(res.text))
             st.success(f"Loaded {len(df)} highly specific genes.")
             st.dataframe(df, use_container_width=True, height=400)
         else:
@@ -412,7 +413,7 @@ with tab4:
         }
         res = requests.get(f"{API_URL}/non_specific", params=params)
         if res.status_code == 200:
-            df = pd.read_csv(res.url)
+            df = pd.read_csv(io.StringIO(res.text))
             st.success(f"Loaded {len(df)} housekeeping genes.")
             st.dataframe(df, use_container_width=True, height=400)
         else:
@@ -454,7 +455,7 @@ with tab5:
         }
         res = requests.get(f"{API_URL}/marker", params=params)
         if res.status_code == 200:
-            df = pd.read_csv(res.url)
+            df = pd.read_csv(io.StringIO(res.text))
             st.success(f"Loaded {len(df)} marker genes.")
             st.dataframe(df, use_container_width=True, height=400)
         else:

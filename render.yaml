@@ -1,11 +1,10 @@
 services:
   - type: web
-<<<<<<< HEAD
     name: 8cubeDB
     env: python
     plan: starter
     buildCommand: pip install -r 8cube_API/requirements.txt
-    startCommand: uvicorn 8cube_API.api:app --host 0.0.0.0 --port 8000
+    startCommand: uvicorn 8cube_API.api:app --host 0.0.0.0 --port 8000 --workers 1
     envVars:
       - key: PORT
         value: 8000

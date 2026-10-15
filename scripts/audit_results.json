@@ -1,0 +1,236 @@
+{
+  "original_full_expression": {
+    "sha256": "9ac2ec4712f3b7a7865d6f196a326f962e74d26f2dd6eed61bf5c771bed29f74",
+    "mode": "old",
+    "rows": 41786,
+    "columns": 260,
+    "dataframe_mb": 91.75079536437988,
+    "csv_mb": 178.45462894439697,
+    "peak_rss_mb": 1418.171875,
+    "duration_s": 31.016008155420423
+  },
+  "streamed_full_expression": {
+    "mode": "new",
+    "rows": 41786,
+    "sha256": "9ac2ec4712f3b7a7865d6f196a326f962e74d26f2dd6eed61bf5c771bed29f74",
+    "csv_mb": 178.45462894439697,
+    "startup_and_request_peak_rss_mb": 62.1171875,
+    "duration_s": 14.471116738393903
+  },
+  "four_concurrent_full_exports": {
+    "mode": "new",
+    "responses": [
+      {
+        "rows": 41786,
+        "sha256": "9ac2ec4712f3b7a7865d6f196a326f962e74d26f2dd6eed61bf5c771bed29f74",
+        "csv_mb": 178.45462894439697
+      },
+      {
+        "rows": 41786,
+        "sha256": "9ac2ec4712f3b7a7865d6f196a326f962e74d26f2dd6eed61bf5c771bed29f74",
+        "csv_mb": 178.45462894439697
+      },
+      {
+        "rows": 41786,
+        "sha256": "9ac2ec4712f3b7a7865d6f196a326f962e74d26f2dd6eed61bf5c771bed29f74",
+        "csv_mb": 178.45462894439697
+      },
+      {
+        "rows": 41786,
+        "sha256": "9ac2ec4712f3b7a7865d6f196a326f962e74d26f2dd6eed61bf5c771bed29f74",
+        "csv_mb": 178.45462894439697
+      }
+    ],
+    "startup_and_request_peak_rss_mb": 75.5390625,
+    "duration_s": 205.97665986791253
+  },
+  "widest_streamed_expression": {
+    "mode": "new",
+    "responses": [
+      {
+        "rows": 41299,
+        "sha256": "7bdd1b9d6747fbf139dfbcafaec6514e6c6aa890e88fdad41e7d43abdb8e4be3",
+        "csv_mb": 354.2794895172119
+      }
+    ],
+    "startup_and_request_peak_rss_mb": 64.3125,
+    "duration_s": 29.916541539132595
+  },
+  "widest_pandas_reference": {
+    "mode": "reference",
+    "rows": 41299,
+    "sha256": "7bdd1b9d6747fbf139dfbcafaec6514e6c6aa890e88fdad41e7d43abdb8e4be3",
+    "csv_mb": 354.2794895172119,
+    "duration_s": 67.75747352465987
+  },
+  "scientific_regressions": [
+    {
+      "route": "/psi_block",
+      "params": {
+        "analysis_level": "Across_tissues",
+        "analysis_type": "Strain",
+        "gene_list": [
+          "Cwc22",
+          "Gjb4",
+          "Akr1c21",
+          "Akap13"
+        ]
+      },
+      "rows": 4,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.066
+    },
+    {
+      "route": "/gene_expression",
+      "params": {
+        "analysis_level": "Across_tissues",
+        "analysis_type": "Strain",
+        "gene_list": [
+          "Cwc22",
+          "Gjb4",
+          "Akr1c21",
+          "Akap13"
+        ]
+      },
+      "rows": 4,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.062
+    },
+    {
+      "route": "/psi_block",
+      "params": {
+        "analysis_level": "Kidney",
+        "analysis_type": "Sex:Celltype",
+        "gene_list": [
+          "Mpped1",
+          "Akr1c6",
+          "Neurog2",
+          "Akap13"
+        ]
+      },
+      "rows": 4,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.144
+    },
+    {
+      "route": "/gene_expression",
+      "params": {
+        "analysis_level": "Kidney",
+        "analysis_type": "Sex:Celltype",
+        "gene_list": [
+          "Mpped1",
+          "Akr1c6",
+          "Neurog2",
+          "Akap13"
+        ]
+      },
+      "rows": 4,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.139
+    },
+    {
+      "route": "/specificity",
+      "params": {
+        "gene_list": [
+          "Cwc22",
+          "Gjb4",
+          "Akap13"
+        ]
+      },
+      "rows": 186,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 1.666
+    },
+    {
+      "route": "/highly_specific",
+      "params": {
+        "analysis_level": "Kidney",
+        "analysis_type": "Strain",
+        "psi_cutoff": 0.4,
+        "zeta_cutoff": 0.4
+      },
+      "rows": 3402,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.603
+    },
+    {
+      "route": "/non_specific",
+      "params": {
+        "analysis_level": "Kidney",
+        "analysis_type": "Strain",
+        "psi_cutoff": 0.7,
+        "zeta_cutoff": 0.3
+      },
+      "rows": 15369,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 1.016
+    },
+    {
+      "route": "/marker",
+      "params": {
+        "analysis_level": "Kidney",
+        "analysis_type": "Strain",
+        "block_label": "PWKJ"
+      },
+      "rows": 663,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.767
+    },
+    {
+      "route": "/marker",
+      "params": {
+        "analysis_level": "Across_tissues",
+        "analysis_type": "Strain",
+        "block_label": "PWKJ"
+      },
+      "rows": 722,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 0.774
+    },
+    {
+      "route": "/highly_specific",
+      "params": {
+        "analysis_level": "Kidney",
+        "analysis_type": "Strain",
+        "psi_cutoff": 0,
+        "zeta_cutoff": 0
+      },
+      "rows": 39296,
+      "exact_numeric_match": true,
+      "identical_csv": true,
+      "duration_s": 1.81
+    }
+  ],
+  "environment": {
+    "date": "2026-10-15",
+    "location": "local Linux, not Render",
+    "python": "3.13.2",
+    "dependencies": {
+      "fastapi": "0.119.0",
+      "starlette": "0.48.0",
+      "pandas": "2.3.2",
+      "mcp": "1.30.0",
+      "sse-starlette": "2.4.1",
+      "httpx": "0.28.1"
+    },
+    "baseline_commit": "04033f44b6574f8a55730456a7c60551179386ca",
+    "memory_measurement": "current RSS sampled every 5 ms; excludes external proxy and kernel page cache",
+    "startup_rss_mib": {
+      "original": 165.3125,
+      "streaming": 48.19140625
+    },
+    "contract_tests": {
+      "passed": 9,
+      "command": "python -m unittest discover -s tests -v"
+    }
+  }
+}
